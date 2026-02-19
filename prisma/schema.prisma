@@ -1,0 +1,80 @@
+generator client {
+  provider = "prisma-client-js"
+  binaryTargets = ["native", "rhel-openssl-1.0.x", "rhel-openssl-3.0.x", "debian-openssl-1.1.x", "debian-openssl-3.0.x"]
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Product {
+  id              String          @id @default(uuid())
+  externalId      String?         @unique 
+  name            String
+  price           Float
+  costPrice       Float?
+  originalPrice   Float?
+  description     String
+  images          String          // Armazenado como JSON (array de strings)
+  category        String
+  rating          Float           @default(0)
+  reviews         Int             @default(0)
+  featured        Boolean         @default(false)
+  createdAt       DateTime        @default(now())
+  salesCount      Int             @default(0)
+  video           String?
+  expiresAt       DateTime?
+  
+  variants        Variant[]
+  specifications  Specification[]
+}
+
+model Variant {
+  id              String  @id @default(uuid())
+  name            String
+  image           String
+  price           Float
+  originalPrice   Float?
+  
+  productId       String
+  product         Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+}
+
+model Specification {
+  id        String  @id @default(uuid())
+  key       String
+  value     String
+  
+  productId String
+  product   Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+}
+
+model Order {
+  id              String   @id @default(uuid())
+  orderNumber     String   @unique
+  customerName    String
+  customerEmail   String
+  customerPhone   String
+  addressZip      String
+  addressStreet   String
+  addressNumber   String
+  addressCity     String
+  totalAmount     Float
+  status          String   @default("pending") // pending, processing, shipped, delivered, failed
+  supplierOrderUrl String?
+  trackingCode    String?
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+  items           String // Armazenado como JSON string
+}
+
+model Creative {
+  id          String   @id @default(cuid())
+  productName String?
+  productId   String?
+  scenes      String? // Armazenado como JSON string
+  status      String   @default("pending") // pending, approved, rejected
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
